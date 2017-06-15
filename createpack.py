@@ -6,8 +6,8 @@ import urllib.request
 xml_templ = '''<?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
   <Product Name='GNU Emacs' Manufacturer='Free Software Foundation'
-           Id='7312D310-673C-4BDF-BFF2-88273847D3AE' 
-           UpgradeCode='2B2D1E25-946B-45F0-BB0F-32779C939B58'
+           Id='%s' 
+           UpgradeCode='%s'
            Language='1033' Codepage='1252' Version='%s'>
     <Package Id='*' Keywords='Installer' Description="Gnu Emacs %s Installer"
              Comments='Emacs is part of the GNU project.' Manufacturer='Free Software Foundation'
@@ -75,7 +75,7 @@ class PackageGenerator:
                 ofile.write(data.replace('SourceDir', 'SourceDir\\' + d))
             subprocess.check_call(['c:\\Program Files\\WiX Toolset v3.11\\bin\\candle.exe', wxsfile_base , '-o', d + '.wixobj'], cwd=self.unpackdir)
         with open(os.path.join(self.unpackdir, self.main_xml), 'w') as ofile:
-            ofile.write(xml_templ % (self.version, self.version))
+            ofile.write(xml_templ % (self.guid, self.update_guid, self.version, self.version))
         subprocess.check_call(['c:\\Program Files\\WiX Toolset v3.11\\bin\\candle.exe', self.main_xml, '-o', self.main_o], cwd=self.unpackdir)
         subprocess.check_call(['c:\\Program Files\\WiX Toolset v3.11\\bin\\light.exe', self.main_o] + self.harvested + ['-o', self.final_output], cwd=self.unpackdir)
         
