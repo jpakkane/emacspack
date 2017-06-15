@@ -16,10 +16,7 @@ xml_templ = '''<?xml version='1.0' encoding='windows-1252'?>
     <Media Id="1" Cabinet="emacs.cab" EmbedCab="yes" />
 
     <Feature Id='EmacsFeature' Level='1'>
-      <ComponentGroupRef Id="bingroup" />
-      <ComponentGroupRef Id="sharegroup" />
-      <ComponentGroupRef Id="libexecgroup" />
-      <ComponentGroupRef Id="vargroup" />
+      <ComponentGroupRef Id="EmacsGroup" />
     </Feature>
 
   </Product>
@@ -49,11 +46,10 @@ class PackageGenerator:
         self.unpackdir = 'unpack'
         self.guid = '7312D310-673C-4BDF-BFF2-88273847D3AE'
         self.update_guid = '2B2D1E25-946B-45F0-BB0F-32779C939B58'
+        self.harvested = 'EmacsGroup.wxs'
         self.main_xml = 'Emacs.wxs'
-        self.main_o = 'Emacs.wixobj'
         self.final_output = 'emacs-%s.msi' % self.version
         self.dirs = ['bin', 'libexec', 'share', 'var']
-        self.harvested = [x + '.wixobj' for x in self.dirs]
 
     def generate(self):
         if not os.path.exists(self.fname):
@@ -63,13 +59,12 @@ class PackageGenerator:
             shutil.rmtree(self.unpackdir)
         print('Unpacking archive')
         shutil.unpack_archive(self.fname, self.unpackdir)
-        for d in self.dirs:
-            subprocess.check_call(['c:\\Program Files\\WiX Toolset v3.11\\bin\\heat.exe', 'dir', d, '-gg', '-cg', d + 'group', '-dr', 'INSTALLDIR', '-out', d + '.wxs'], cwd=self.unpackdir)
-            subprocess.check_call(['c:\\Program Files\\WiX Toolset v3.11\\bin\\candle.exe', d+'.wxs' , '-o', d + '.wixobj'], cwd=self.unpackdir)
+        subprocess.check_call(['c:\\Program Files\\WiX Toolset v3.11\\bin\\heat.exe', 'dir', '.', '-gg', '-cg', 'EmacsGroup', '-dr', 'INSTALLDIR', '-out', self.harvested], cwd=self.unpackdir)
         with open(os.path.join(self.unpackdir, self.main_xml), 'w') as ofile:
             ofile.write(xml_templ % (self.version, self.version))
-        subprocess.check_call(['c:\\Program Files\\WiX Toolset v3.11\\bin\\candle.exe', self.main_xml, '-o', self.main_o], cwd=self.unpackdir)
-        subprocess.check_call(['c:\\Program Files\\WiX Toolset v3.11\\bin\\light.exe', self.main_o] + self.harvested + ['-o', self.final_output], cwd=self.unpackdir)
+        subprocess.check_call(['c:\\Program Files\\WiX Toolset v3.11\\bin\\candle.exe', self.main_xml, '-o', '1.wixobj'], cwd=self.unpackdir)
+        subprocess.check_call(['c:\\Program Files\\WiX Toolset v3.11\\bin\\candle.exe', self.harvested, '-o', '2.wixobj'], cwd=self.unpackdir)
+        subprocess.check_call(['c:\\Program Files\\WiX Toolset v3.11\\bin\\light.exe', '1.wixobj', '2.wixobj', '-o', self.final_output], cwd=self.unpackdir)
         
 
 if __name__ == '__main__':
